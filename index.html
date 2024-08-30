@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern Decklist App</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        h1, h2 {
+            color: #333;
+        }
+        #input-container {
+            margin-bottom: 20px;
+        }
+        textarea {
+            width: 100%;
+            height: 300px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-family: 'Courier New', Courier, monospace;
+        }
+        #save-button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        #save-button:hover {
+            background-color: #45a049;
+        }
+        #formatted-output {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .section {
+            width: calc(50% - 10px);
+            margin-bottom: 20px;
+        }
+        .section h3 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 5px;
+        }
+        .section ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+            columns: 2;
+            column-gap: 20px;
+        }
+        .section li {
+            margin-bottom: 5px;
+            break-inside: avoid-column;
+        }
+    </style>
+</head>
+<body>
+    <h1>Modern Decklist App</h1>
+    <div id="input-container">
+        <textarea id="decklist-input" placeholder="Enter your decklist here..."></textarea>
+    </div>
+    <button id="save-button">Save Decklist</button>
+    <h2>Formatted Decklist</h2>
+    <div id="formatted-output"></div>
+
+    <script>
+        const input = document.getElementById('decklist-input');
+        const saveButton = document.getElementById('save-button');
+        const formattedOutput = document.getElementById('formatted-output');
+
+        // Load saved decklist from local storage
+        const savedDecklist = localStorage.getItem('decklist');
+        if (savedDecklist) {
+            input.value = savedDecklist;
+            formatDecklist(savedDecklist);
+        }
+
+        saveButton.addEventListener('click', () => {
+            const decklist = input.value;
+            localStorage.setItem('decklist', decklist);
+            formatDecklist(decklist);
+        });
+
+        function formatDecklist(decklist) {
+            const lines = decklist.split('\n');
+            let currentSection = '';
+            let sections = {};
+
+            formattedOutput.innerHTML = '';
+
+            lines.forEach(line => {
+                line = line.trim();
+                if (line === '') return;
+
+                if (line.endsWith('LANDS') || line.endsWith('CREATURES') || line.endsWith('INSTANTS and SORC.') || line.endsWith('OTHER SPELLS') || line.endsWith('SIDEBOARD')) {
+                    currentSection = line;
+                    sections[currentSection] = [];
+                } else {
+                    if (currentSection) {
+                        sections[currentSection].push(line);
+                    }
+                }
+            });
+
+            Object.entries(sections).forEach(([sectionName, cards]) => {
+                const sectionDiv = document.createElement('div');
+                sectionDiv.className = 'section';
+                sectionDiv.innerHTML = `
+                    <h3>${sectionName}</h3>
+                    <ul>
+                        ${cards.map(card => `<li>${card}</li>`).join('')}
+                    </ul>
+                `;
+                formattedOutput.appendChild(sectionDiv);
+            });
+        }
+    </script>
+</body>
+</html>
